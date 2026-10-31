@@ -316,7 +316,12 @@ class SubstationFormat(FormatBase):
                 if m is None:
                     m = TIMESTAMP_SHORT.match(value)
                     if m is None:
-                        raise ValueError(f"Failed to parse {field} timestamp: {value!r}")
+                        # An unparseable timestamp used to raise a bare ValueError
+                        # (outside the Pysubs2Error hierarchy), crashing readers of
+                        # untrusted/corrupt subtitles. Warn and fall back to a default,
+                        # consistent with every other field below (cf. issue #116).
+                        warnings.warn(f"Failed to parse {field} timestamp, using default", SubtitleAttributeWarning)
+                        return 0
 
                 return sign * timestamp_to_ms(m.groups())
             case "primarycolor" | "secondarycolor" | "tertiarycolor" | "outlinecolor" | "backcolor":

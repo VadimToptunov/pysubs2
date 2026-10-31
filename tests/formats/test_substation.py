@@ -352,6 +352,17 @@ def test_malformed_color_uses_default() -> None:
     assert subs.styles["Default"].secondarycolor == SSAStyle.DEFAULT_STYLE.secondarycolor
 
 
+def test_malformed_timestamp_uses_default() -> None:
+    # A Dialogue line whose start/end field is not a timestamp used to raise a
+    # bare ValueError (outside the Pysubs2Error hierarchy), crashing the reader of
+    # an untrusted/corrupt subtitle. It should warn and fall back to a default
+    # instead, like every other unparseable field (cf. test_malformed_color_uses_default).
+    ref = SIMPLE_ASS_REF.replace("0:00:00.00", "not-a-timestamp", 1)
+    with pytest.warns(SubtitleAttributeWarning):
+        subs = SSAFile.from_string(ref)
+    assert subs[0].start == 0
+
+
 def test_aegisub_project_garbage() -> None:
     subs = SSAFile.from_string(AEGISUB_PROJECT_GARBAGE_FILE)
     garbage_section = dedent("""
